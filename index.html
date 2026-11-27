@@ -55,6 +55,14 @@ function toggleDoor(){const near=Math.hypot(player.position.x+1.15,player.positi
 
 const windowMat=new THREE.MeshStandardMaterial({color:0x91cbe4,metalness:.2,roughness:.15});
 box(2.3,1.4,.08,windowMat,-2.7,2.0,-4.86,walls);box(.08,1.5,.1,wood,-2.7,2,-4.78,walls);box(2.4,.08,.1,wood,-2.7,2,-4.78,walls);
+// Dedicated room partitions for kitchen, bathroom and garage
+const roomWall=mat(0xd3d0c8);
+function partition(w,h,d,x,y,z){return box(w,h,d,roomWall,x,y,z,walls)}
+partition(.16,2.8,1.45,0,1.4,-4.05);partition(.16,2.8,1.45,0,1.4,-1.55);
+partition(.16,2.8,1.55,1.95,1.4,1.15);partition(.16,2.8,1.55,1.95,1.4,3.95);
+partition(1.15,2.8,.16,2.65,1.4,4.35);partition(1.15,2.8,.16,5.15,1.4,4.35);partition(1.25,.35,.16,3.9,2.62,4.35);
+function floorLabel(text,x,z,color){const cv=document.createElement('canvas');cv.width=512;cv.height=128;const ctx=cv.getContext('2d');ctx.fillStyle=color;ctx.font='bold 52px Arial';ctx.textAlign='center';ctx.fillText(text,256,78);const tex=new THREE.CanvasTexture(cv);const m=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.position.set(x,.015,z);scene.add(m)}
+floorLabel('KITCHEN',-3.7,-4.25,'#fff4d8');floorLabel('BATHROOM',3.7,-4.25,'#e8fbff');floorLabel('GARAGE',3.9,3.8,'#ffffff');
 const rug=box(4,.05,3,mat(0x344e5b),0,.03,1.2);
 // Outdoor grounds, garden, walkway and trees around the home
 const lawnMat=mat(0x47734c), pathMat=mat(0xb8aa91), trunkMat=mat(0x60432d);
@@ -72,6 +80,8 @@ const head=new THREE.Mesh(new THREE.SphereGeometry(.23,16,12),mat(0xd6a47c));hea
 const legMat=mat(0x202c3a);
 for(const x of [-.13,.13]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.55,10),legMat);leg.position.set(x,.27,0);player.add(leg)}
 player.position.set(0,0,1.1);
+function roomDoor(x,z,axis,width){const pivot=new THREE.Group();pivot.position.set(x,0,z);scene.add(pivot);box(axis==='z'?width:.12,2.45,axis==='z'?.12:width,doorWood,axis==='z'?width/2:0,1.225,axis==='z'?0:width/2,pivot);return {pivot,open:false,toggle(){if(Math.hypot(player.position.x-x,player.position.z-z)>3.2){hint.textContent='Darwaze de kol ja ke kholo';return}this.open=!this.open;this.pivot.rotation.y=this.open?(axis==='z'?-Math.PI/2:Math.PI/2):0;hint.textContent=this.open?'Room door opened':'Room door closed'}}}
+const innerRoomDoor=roomDoor(0,-2.8,'x',1.25);const garageDoor=roomDoor(1.95,2.55,'z',1.25);
 const held=new Set();let moving=false;
 function setMove(k,on){if(on)held.add(k);else held.delete(k)}
 document.querySelectorAll('[data-move]').forEach(b=>{const k=b.dataset.move;b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setMove(k,true)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,()=>setMove(k,false)))});
@@ -89,20 +99,23 @@ function furniture(type,x=0,z=0,rot=0){
  if(type==='tv'){add(2.1,1.2,.12,dark,0,1.5,0);add(1.95,1.05,.025,mat(0x101d2c,.2),0,1.5,.08);add(.12,.5,.12,dark,0,.65,0);add(1,.1,.5,wood,0,.3,0)}
  if(type==='kitchen'){add(3.2,.9,.72,wood,0,.48,0);add(3.3,.12,.82,mat(0xe8e5dc),0,1,0);add(1.15,.08,.65,dark,-.75,1.1,0);add(.72,.12,.55,dark,.9,1.1,0);add(.7,.75,.08,mat(0x9ba8ad),1.05,1.55,-.31);add(.16,.45,.16,gold,-.65,1.32,-.18)}
  if(type==='bath'){add(1.5,.28,2,mat(0xf0f0e9),-.8,.25,0);add(1.45,.12,1.9,mat(0x9fcbd5),-.8,.43,0);add(.65,.9,.65,mat(0xf4f2e9),.9,.45,-.35);add(.7,.12,.7,mat(0xe8e8e3),.9,.95,-.35);add(1.2,1.4,.08,windowMat,.9,1.8,-.72);add(.12,1.5,.12,gold,1.5,1.2,-.35)}
- if(type==='garage'){add(3.5,.18,5,mat(0x777d83),0,.12,0);add(3.7,2.8,.18,mat(0xadb8bd),0,1.45,-2.5);add(3.35,2.25,.1,mat(0x667985),0,1.35,-2.38);for(let y=.45;y<2.5;y+=.45)add(3.35,.045,.12,mat(0xd4dadd),0,y,-2.3);add(.15,2.7,.15,wood,-1.8,1.4,-2.5);add(.15,2.7,.15,wood,1.8,1.4,-2.5)}
+ if(type==='garage'){g.scale.setScalar(.68);add(3.5,.18,5,mat(0x777d83),0,.12,0);add(3.7,2.8,.18,mat(0xadb8bd),0,1.45,-2.5);add(3.35,2.25,.1,mat(0x667985),0,1.35,-2.38);for(let y=.45;y<2.5;y+=.45)add(3.35,.045,.12,mat(0xd4dadd),0,y,-2.3);add(.15,2.7,.15,wood,-1.8,1.4,-2.5);add(.15,2.7,.15,wood,1.8,1.4,-2.5)}
 
  items.push({type,g});last=g;return g;
 }
 function setMode(v){buildMode=v;modeLabel.textContent=v?'Build Mode':'Explore Mode';panel.classList.toggle('hidden',!v);document.getElementById('movePad').classList.toggle('hidden',v);hint.textContent=v?'Choose furniture, then tap the floor to place it':'Move with arrows • Drag to look around • E opens door';}
 document.getElementById('build').onclick=()=>setMode(true);document.getElementById('explore').onclick=()=>setMode(false);
 panel.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{selected=b.dataset.item;panel.querySelectorAll('[data-item]').forEach(x=>x.classList.toggle('active',x===b));hint.textContent='Selected '+selected+' • Tap floor to place'});
-document.getElementById('rotate').onclick=()=>{rotation+=Math.PI/4;hint.textContent='Next furniture rotation: '+Math.round(rotation*180/Math.PI)+'°'};document.getElementById('door').onclick=toggleDoor;addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e'&&!buildMode)toggleDoor()});
+document.getElementById('rotate').onclick=()=>{rotation+=Math.PI/4;hint.textContent='Next furniture rotation: '+Math.round(rotation*180/Math.PI)+'°'};document.getElementById('door').onclick=toggleDoor;
+const roomControls=document.createElement('div');roomControls.innerHTML='<hr><h3>ROOM DOORS</h3><button id="innerDoorBtn">Kitchen / Bathroom Door</button><button id="garageDoorBtn">Garage Door</button>';panel.appendChild(roomControls);
+document.getElementById('innerDoorBtn').onclick=()=>innerRoomDoor.toggle();document.getElementById('garageDoorBtn').onclick=()=>garageDoor.toggle();
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e'&&!buildMode){if(Math.hypot(player.position.x,player.position.z+2.8)<3.2)innerRoomDoor.toggle();else if(Math.hypot(player.position.x-1.95,player.position.z-2.55)<3.2)garageDoor.toggle();else toggleDoor()}});
 document.getElementById('delete').onclick=()=>{if(last){scene.remove(last);items=items.filter(i=>i.g!==last);last=items.length?items[items.length-1].g:null}};
 document.getElementById('wall').onclick=()=>{const colors=[0xe4e1d9,0xd6e4e8,0xe7d7c6,0xc9d5c8,0xd8d0e6];wallColor=colors[(colors.indexOf(wallColor)+1)%colors.length];walls.children.forEach(o=>{if(o.material===wallMat)o.material=mat(wallColor)})};
 document.getElementById('save').onclick=()=>{const data=items.map(i=>({type:i.type,x:i.g.position.x,z:i.g.position.z,rot:i.g.rotation.y}));localStorage.setItem('rhcraft-home',JSON.stringify({data,wallColor}));hint.textContent='Home saved on this device ✓'};
 document.getElementById('reset').onclick=()=>{items.forEach(i=>scene.remove(i.g));items=[];last=null;localStorage.removeItem('rhcraft-home');hint.textContent='Room reset'};
 try{const saved=JSON.parse(localStorage.getItem('rhcraft-home')||'null');if(saved){if(saved.data)saved.data.forEach(i=>furniture(i.type,i.x,i.z,i.rot));if(saved.wallColor){wallColor=saved.wallColor;walls.children.forEach(o=>{if(o.material===wallMat)o.material=mat(wallColor)})}}}catch(e){}
-const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(!buildMode)return;const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(floor);if(hit.length){const p=hit[0].point;if(Math.abs(p.x)<5&&p.z>-4.5&&p.z<4.5){const inside=selected==='garage'?Math.abs(p.x)>2.3&&p.z<-.8:selected==='bath'?p.x>2&&p.z<3.8:selected==='kitchen'?p.z<-.9:true;if(inside)furniture(selected,p.x,p.z,rotation);else hint.textContent='Is room nu usde area vich place karo'}}});
+const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(!buildMode)return;const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(floor);if(hit.length){const p=hit[0].point;if(Math.abs(p.x)<5&&p.z>-4.5&&p.z<4.5){const inside=selected==='garage'?p.x>2.1&&p.z>1.0:selected==='bath'?p.x>1.9&&p.z<-.9:selected==='kitchen'?p.x<-.9&&p.z<-.9:true;if(inside)furniture(selected,p.x,p.z,rotation);else hint.textContent='Is room nu usde area vich place karo'}}});
 let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{down=true;px=e.clientX;py=e.clientY});addEventListener('pointerup',()=>down=false);renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;yaw-=dx*.006;pitch=Math.max(.08,Math.min(.9,pitch+dy*.004))});
 const clock=new THREE.Clock();
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
