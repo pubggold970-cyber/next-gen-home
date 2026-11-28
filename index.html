@@ -15,11 +15,13 @@
 .movePad button[data-move="forward"]{grid-column:2;grid-row:1}.movePad button[data-move="left"]{grid-column:1;grid-row:2}.movePad button[data-move="back"]{grid-column:2;grid-row:2}.movePad button[data-move="right"]{grid-column:3;grid-row:2}#jumpBtn{grid-column:1;grid-row:1;background:#17634f;font-size:12px}.movePad #sprintBtn{grid-column:3;grid-row:1;background:#79521bd9;font-size:12px}
 @media(max-width:520px){.movePad{bottom:78px;grid-template-columns:42px 42px 42px;grid-template-rows:40px 40px}.movePad button{font-size:16px}}
 @media(max-width:520px){.panel{top:60px;width:164px;padding:8px}.panel button{padding:9px 5px;font-size:12px}.pill{font-size:12px;padding:8px}.hint{font-size:10px;bottom:70px}}
+#nightBtn{position:fixed;z-index:8;right:12px;top:62px;border:1px solid #ffffff55;border-radius:12px;padding:10px 12px;background:#102b3bd9;color:#fff;font-size:12px;font-weight:800;touch-action:manipulation}#nightBtn.night{background:#79521bd9}
 </style>
 </head>
 <body>
 <div id="game"></div>
 <div class="hud"><div class="pill">🏡 REALISTIC HOME CRAFT · SINGLE PLAYER</div><div class="pill" id="mode">Explore Mode</div></div>
+<button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <aside class="panel" id="panel"><h3>BUILD MENU</h3>
 <button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button>
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
@@ -46,6 +48,24 @@ const roomLights=[];
 function addRoomLight(name,x,z,power=1){const fixtureMat=new THREE.MeshStandardMaterial({color:0xffe2a3,emissive:0xffb84d,emissiveIntensity:0,roughness:.35});const fixture=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12),fixtureMat);fixture.position.set(x,2.72,z);scene.add(fixture);const light=new THREE.PointLight(0xffd18a,0,8,1.8);light.position.set(x,2.58,z);scene.add(light);roomLights.push({name,light,fixture,fixtureMat,power,enabled:true})}
 addRoomLight('Bedroom',-3,-2.4,1);addRoomLight('Kitchen',0,-3,.9);addRoomLight('Living Room',0,1.1,1);addRoomLight('Garage',3.6,2.5,1.15);
 function refreshRoomLights(){roomLights.forEach(({light,fixtureMat,power,enabled})=>{light.intensity=enabled?power*1.15:0;fixtureMat.emissiveIntensity=enabled?.65:0})}
+let nightMode=false;
+const nightBtn=document.getElementById('nightBtn');
+function setNightMode(on){
+ nightMode=on;
+ nightBtn.classList.toggle('night',on);
+ nightBtn.textContent=on?'☀️ DAY MODE':'🌙 NIGHT MODE';
+ hemi.intensity=on?.42:2;
+ sun.intensity=on?.18:2.2;
+ scene.background.setHex(on?0x101b32:0x9bb6c7);
+ scene.fog.color.setHex(on?0x101b32:0x9bb6c7);
+ roomLights.forEach(({light,fixtureMat,power,enabled})=>{
+  light.intensity=enabled?(on?power*2.3:power*.12):0;
+  fixtureMat.emissiveIntensity=enabled?(on?1.15:.08):0;
+ });
+ hint.textContent=on?'Night mode: room switches control each light':'Day mode: natural daylight is ON';
+}
+nightBtn.addEventListener('click',()=>setNightMode(!nightMode));
+
 const floorMat=mat(0x9b8068), wallMat=mat(0xe4e1d9), wood=mat(0x68452f), dark=mat(0x202b35), fabric=mat(0x477c91), gold=mat(0xc49a55), green=mat(0x39734d);
 function box(w,h,d,m,x,y,z,group=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;group.add(o);return o}
 const floor=box(12,.25,10,floorMat,0,-.13,0);const walls=new THREE.Group();scene.add(walls);
