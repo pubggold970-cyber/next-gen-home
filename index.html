@@ -94,12 +94,39 @@ const solidWalls=[
  {x:1.95,z:1.15,hx:.13,hz:.775},{x:1.95,z:3.95,hx:.13,hz:.775},
  {x:2.65,z:4.35,hx:.575,hz:.13},{x:5.15,z:4.35,hx:.575,hz:.13}
 ];
+function furnitureBounds(){
+ const bounds=[];
+ for(const item of items){
+  const b=new THREE.Box3().setFromObject(item.g);
+  // Ignore objects that are entirely above or below the player's walking space.
+  if(b.max.y>.12 && b.min.y<1.75) bounds.push(b);
+ }
+ return bounds;
+}
+function blockedByFurniture(x,z){
+ const currentX=player.position.x,currentZ=player.position.z;
+ for(const b of furnitureBounds()){
+  const minX=b.min.x-playerRadius,maxX=b.max.x+playerRadius;
+  const minZ=b.min.z-playerRadius,maxZ=b.max.z+playerRadius;
+  const candidateInside=x>minX&&x<maxX&&z>minZ&&z<maxZ;
+  if(!candidateInside) continue;
+  const currentInside=currentX>minX&&currentX<maxX&&currentZ>minZ&&currentZ<maxZ;
+  if(!currentInside) return true;
+  // If a saved/placed object surrounds the player, allow movement that takes the player farther out.
+  const cx=(minX+maxX)/2,cz=(minZ+maxZ)/2;
+  const before=(currentX-cx)**2+(currentZ-cz)**2;
+  const after=(x-cx)**2+(z-cz)**2;
+  if(after<=before+1e-6) return true;
+ }
+ return false;
+}
 function blockedAt(x,z){
  if(x < -5.55 || x > 5.55 || z < -4.55 || z > 4.55) return true;
  for(const w of solidWalls) if(Math.abs(x-w.x)<w.hx+playerRadius && Math.abs(z-w.z)<w.hz+playerRadius)return true;
  if(!doorOpen && Math.abs(x-.0)<1.125+playerRadius && Math.abs(z+.7)<.12+playerRadius)return true;
  if(!innerRoomDoor.open && Math.abs(x)<.12+playerRadius && Math.abs(z+2.8)<.625+playerRadius)return true;
  if(!garageDoor.open && Math.abs(x-1.95)<.625+playerRadius && Math.abs(z-2.55)<.12+playerRadius)return true;
+ if(blockedByFurniture(x,z)) return true;
  return false;
 }
 function movePlayer(dx,dz){
