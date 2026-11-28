@@ -72,7 +72,8 @@ function tree(x,z){box(.35,2,.35,trunkMat,x,.65,z);const crown=new THREE.Mesh(ne
 tree(-10,-7);tree(-12,3);tree(10,-8);tree(12,4);tree(-8,10);tree(9,11);
 for(let x=-8;x<=8;x+=2)box(.12,.65,.12,wood,x,-.02,-8);
 
-let yaw=Math.PI/4,pitch=.28,target=new THREE.Vector3(0,1,0),distance=8,buildMode=false,selected='sofa',rotation=0,items=[],last=null,wallColor=0xe4e1d9;
+let yaw=Math.PI/4,pitch=.28,yawTarget=Math.PI/4,pitchTarget=.28,target=new THREE.Vector3(0,1,0),distance=8,buildMode=false,selected='sofa',rotation=0,items=[],last=null,wallColor=0xe4e1d9;
+const playerVelocity=new THREE.Vector2();
 // Simple third-person avatar; movement is controlled by the on-screen pad or keyboard
 const player=new THREE.Group();scene.add(player);
 const body=new THREE.Mesh(new THREE.CylinderGeometry(.25,.32,.95,12),mat(0x246b9a));body.position.y=.78;body.castShadow=true;player.add(body);
@@ -183,16 +184,18 @@ function canPlaceFurniture(candidate){
  return true;
 }
 const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(!buildMode)return;const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(floor);if(hit.length){const p=hit[0].point;if(Math.abs(p.x)<5&&p.z>-4.5&&p.z<4.5){const inside=selected==='garage'?p.x>2.1&&p.z>1.0:selected==='bath'?p.x>1.9&&p.z<-.9:selected==='kitchen'?p.x<-.9&&p.z<-.9:true;if(inside){const placed=furniture(selected,p.x,p.z,rotation);if(!canPlaceFurniture(placed)){scene.remove(placed);items=items.filter(i=>i.g!==placed);last=items.length?items[items.length-1].g:null;hint.textContent='Not placed: furniture nu wall ton door te hor furniture naal overlap ton bina rakho'}else hint.textContent=selected+' placed ✓'}else hint.textContent='Is room nu usde area vich place karo'}}});
-let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{down=true;px=e.clientX;py=e.clientY});addEventListener('pointerup',()=>down=false);renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;yaw-=dx*.006;pitch=Math.max(.08,Math.min(.9,pitch+dy*.004))});
+let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{if(e.button!==0)return;down=true;px=e.clientX;py=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointerup',()=>down=false);renderer.domElement.addEventListener('pointercancel',()=>down=false);renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;yawTarget-=dx*.005;pitchTarget=Math.max(.10,Math.min(.82,pitchTarget+dy*.0035))});
 const clock=new THREE.Clock();
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
- if(!buildMode&&held.size){let dx=0,dz=0;const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));if(held.has('forward')){dx+=forward.x;dz+=forward.z}if(held.has('back')){dx-=forward.x;dz-=forward.z}if(held.has('left')){dx-=right.x;dz-=right.z}if(held.has('right')){dx+=right.x;dz+=right.z}const len=Math.hypot(dx,dz)||1;movePlayer(dx/len*3.2*dt,dz/len*3.2*dt);player.rotation.y=Math.atan2(dx,dz);moving=true}else moving=false;
+ yaw=THREE.MathUtils.damp(yaw,yawTarget,12,dt);pitch=THREE.MathUtils.damp(pitch,pitchTarget,12,dt);
+ let inputX=0,inputZ=0;if(!buildMode&&held.size){const forwardX=-Math.sin(yaw),forwardZ=-Math.cos(yaw),rightX=Math.cos(yaw),rightZ=-Math.sin(yaw);if(held.has('forward')){inputX+=forwardX;inputZ+=forwardZ}if(held.has('back')){inputX-=forwardX;inputZ-=forwardZ}if(held.has('left')){inputX-=rightX;inputZ-=rightZ}if(held.has('right')){inputX+=rightX;inputZ+=rightZ}}
+ const inputLen=Math.hypot(inputX,inputZ);if(inputLen>0){inputX=inputX/inputLen*3.45;inputZ=inputZ/inputLen*3.45;}const response=inputLen>0?13:9;playerVelocity.x=THREE.MathUtils.damp(playerVelocity.x,inputX,response,dt);playerVelocity.y=THREE.MathUtils.damp(playerVelocity.y,inputZ,response,dt);if(Math.abs(playerVelocity.x)<.015)playerVelocity.x=0;if(Math.abs(playerVelocity.y)<.015)playerVelocity.y=0;movePlayer(playerVelocity.x*dt,playerVelocity.y*dt);moving=Math.hypot(playerVelocity.x,playerVelocity.y)>.12;if(moving)player.rotation.y=THREE.MathUtils.damp(player.rotation.y,Math.atan2(playerVelocity.x,playerVelocity.y),14,dt);
  const walkPhase=clock.elapsedTime*10;
- legs.forEach((leg,i)=>{leg.rotation.x=moving?Math.sin(walkPhase+(i*Math.PI))*.62:0});
- arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*.38:0});
- body.position.y=.78+(moving?Math.abs(Math.sin(walkPhase))*.045:0);
- head.position.y=1.42+(moving?Math.abs(Math.sin(walkPhase))*.045:0);
- if(!buildMode){target.lerp(new THREE.Vector3(player.position.x,1.05,player.position.z),.12)}
+ legs.forEach((leg,i)=>{leg.rotation.x=moving?Math.sin(walkPhase+(i*Math.PI))*.62:THREE.MathUtils.damp(leg.rotation.x,0,12,dt)});
+ arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*.38:THREE.MathUtils.damp(arm.rotation.x,0,12,dt)});
+ body.position.y=THREE.MathUtils.damp(body.position.y,.78+(moving?Math.abs(Math.sin(walkPhase))*.045:0),14,dt);
+ head.position.y=THREE.MathUtils.damp(head.position.y,1.42+(moving?Math.abs(Math.sin(walkPhase))*.045:0),14,dt);
+ if(!buildMode)target.lerp(new THREE.Vector3(player.position.x,1.05,player.position.z),1-Math.exp(-7*dt));
  camera.position.set(target.x+Math.sin(yaw)*Math.cos(pitch)*distance,target.y+Math.sin(pitch)*distance,target.z+Math.cos(yaw)*Math.cos(pitch)*distance);camera.lookAt(target);renderer.render(scene,camera)}animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 })();
