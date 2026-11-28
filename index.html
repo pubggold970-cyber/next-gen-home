@@ -77,8 +77,10 @@ let yaw=Math.PI/4,pitch=.28,target=new THREE.Vector3(0,1,0),distance=8,buildMode
 const player=new THREE.Group();scene.add(player);
 const body=new THREE.Mesh(new THREE.CylinderGeometry(.25,.32,.95,12),mat(0x246b9a));body.position.y=.78;body.castShadow=true;player.add(body);
 const head=new THREE.Mesh(new THREE.SphereGeometry(.23,16,12),mat(0xd6a47c));head.position.y=1.42;head.castShadow=true;player.add(head);
-const legMat=mat(0x202c3a);
-for(const x of [-.13,.13]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.55,10),legMat);leg.position.set(x,.27,0);player.add(leg)}
+const legMat=mat(0x202c3a),legs=[];
+for(const x of [-.13,.13]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.55,10),legMat);leg.position.set(x,.27,0);player.add(leg);legs.push(leg)}
+const armMat=mat(0x246b9a),arms=[];
+for(const x of [-.34,.34]){const arm=new THREE.Mesh(new THREE.CylinderGeometry(.075,.09,.62,10),armMat);arm.position.set(x,.88,0);arm.rotation.z=x<0?-.16:.16;player.add(arm);arms.push(arm)}
 player.position.set(0,0,1.1);
 function roomDoor(x,z,axis,width){const pivot=new THREE.Group();pivot.position.set(x,0,z);scene.add(pivot);box(axis==='z'?width:.12,2.45,axis==='z'?.12:width,doorWood,axis==='z'?width/2:0,1.225,axis==='z'?0:width/2,pivot);return {pivot,open:false,toggle(){if(Math.hypot(player.position.x-x,player.position.z-z)>3.2){hint.textContent='Darwaze de kol ja ke kholo';return}this.open=!this.open;this.pivot.rotation.y=this.open?(axis==='z'?-Math.PI/2:Math.PI/2):0;hint.textContent=this.open?'Room door opened':'Room door closed'}}}
 const innerRoomDoor=roomDoor(0,-2.8,'x',1.25);const garageDoor=roomDoor(1.95,2.55,'z',1.25);
@@ -120,6 +122,11 @@ let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{
 const clock=new THREE.Clock();
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
  if(!buildMode&&held.size){let dx=0,dz=0;const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));if(held.has('forward')){dx+=forward.x;dz+=forward.z}if(held.has('back')){dx-=forward.x;dz-=forward.z}if(held.has('left')){dx-=right.x;dz-=right.z}if(held.has('right')){dx+=right.x;dz+=right.z}const len=Math.hypot(dx,dz)||1;player.position.x+=dx/len*3.2*dt;player.position.z+=dz/len*3.2*dt;player.position.x=Math.max(-5.4,Math.min(5.4,player.position.x));player.position.z=Math.max(-4.4,Math.min(4.4,player.position.z));player.rotation.y=Math.atan2(dx,dz);moving=true}else moving=false;
+ const walkPhase=clock.elapsedTime*10;
+ legs.forEach((leg,i)=>{leg.rotation.x=moving?Math.sin(walkPhase+(i*Math.PI))*.62:0});
+ arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*.38:0});
+ body.position.y=.78+(moving?Math.abs(Math.sin(walkPhase))*.045:0);
+ head.position.y=1.42+(moving?Math.abs(Math.sin(walkPhase))*.045:0);
  if(!buildMode){target.lerp(new THREE.Vector3(player.position.x,1.05,player.position.z),.12)}
  camera.position.set(target.x+Math.sin(yaw)*Math.cos(pitch)*distance,target.y+Math.sin(pitch)*distance,target.z+Math.cos(yaw)*Math.cos(pitch)*distance);camera.lookAt(target);renderer.render(scene,camera)}animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
