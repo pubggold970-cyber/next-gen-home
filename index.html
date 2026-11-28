@@ -23,7 +23,7 @@
 <div class="hud"><div class="pill">🏡 REALISTIC HOME CRAFT · SINGLE PLAYER</div><div class="pill" id="mode">Explore Mode</div></div>
 <button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <aside class="panel" id="panel"><h3>BUILD MENU</h3>
-<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button><button data-item="chair">🪑 Modern Dining Chair</button><button data-item="mirror">🪞 Full-Length Mirror</button>
+<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button><button data-item="chair">🪑 Modern Dining Chair</button><button data-item="mirror">🪞 Full-Length Mirror</button><button data-item="dining">🍽️ Modern Dining Table</button><button data-item="plantpot">🌿 Decorative Floor Planter</button>
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
 </aside>
 <div id="staminaHud">STAMINA <span id="staminaText">100%</span><div id="staminaTrack"><div id="staminaFill"></div></div></div>
@@ -272,6 +272,27 @@ function furniture(type,x=0,z=0,rot=0){
   add(.91,2.13,.035,glass,0,1.2,.085);
   add(1.18,.09,.16,wood,0,.08,0);
   for(const x of [-.38,.38])add(.045,.12,.045,gold,x,.18,.13);
+ }
+ if(type==='dining'){
+  const timber=mat(0x79543b,.38),top=mat(0xddd3c2,.28),metal=mat(0x343638,.42);
+  add(2.25,.16,1.35,timber,0,.95,0);
+  add(2.18,.07,1.28,top,0,1.065,0);
+  for(const x of [-.92,.92])for(const z of [-.48,.48])add(.12,.9,.12,metal,x,.45,z);
+  add(2.1,.055,.08,gold,0,.83,.61);
+ }
+ if(type==='plantpot'){
+  const pot=mat(0x9b5938,.48),soil=mat(0x49372d,1),leafMat=mat(0x47734f,.72),vein=mat(0x8eaa6a,.6);
+  const vessel=new THREE.Mesh(new THREE.CylinderGeometry(.42,.3,.68,24,1,true),pot);vessel.position.y=.34;g.add(vessel);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.07,24),pot);base.position.y=.035;g.add(base);
+  const dirt=new THREE.Mesh(new THREE.CircleGeometry(.39,24),soil);dirt.rotation.x=-Math.PI/2;dirt.position.y=.69;g.add(dirt);
+  for(let n=0;n<9;n++){
+   const a=n*Math.PI*2/9, h=.85+(n%3)*.18;
+   const leaf=new THREE.Mesh(new THREE.SphereGeometry(.19,12,10),leafMat);
+   leaf.position.set(Math.cos(a)*.3,.83+h*.36,Math.sin(a)*.3);
+   leaf.scale.set(.55,h,.48);leaf.rotation.z=-Math.cos(a)*.42;leaf.rotation.x=Math.sin(a)*.35;g.add(leaf);
+   const stem=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,h*.72,8),vein);
+   stem.position.set(Math.cos(a)*.13,.75+h*.28,Math.sin(a)*.13);stem.rotation.z=-Math.cos(a)*.3;stem.rotation.x=Math.sin(a)*.3;g.add(stem);
+  }
  }
  if(type==='clock'){
   const face=mat(0xf4f0e6,.25),ink=mat(0x252b31,.3);
