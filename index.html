@@ -86,6 +86,27 @@ function roomDoor(x,z,axis,width){const pivot=new THREE.Group();pivot.position.s
 const innerRoomDoor=roomDoor(0,-2.8,'x',1.25);const garageDoor=roomDoor(1.95,2.55,'z',1.25);
 const held=new Set();let moving=false;
 function setMove(k,on){if(on)held.add(k);else held.delete(k)}
+// Player collision map: solid wall segments leave the designed doorways clear.
+const playerRadius=.28;
+const solidWalls=[
+ {x:-3.875,z:-.7,hx:2.125,hz:.13},{x:3.875,z:-.7,hx:2.125,hz:.13},
+ {x:0,z:-4.05,hx:.13,hz:.725},{x:0,z:-1.55,hx:.13,hz:.725},
+ {x:1.95,z:1.15,hx:.13,hz:.775},{x:1.95,z:3.95,hx:.13,hz:.775},
+ {x:2.65,z:4.35,hx:.575,hz:.13},{x:5.15,z:4.35,hx:.575,hz:.13}
+];
+function blockedAt(x,z){
+ if(x < -5.55 || x > 5.55 || z < -4.55 || z > 4.55) return true;
+ for(const w of solidWalls) if(Math.abs(x-w.x)<w.hx+playerRadius && Math.abs(z-w.z)<w.hz+playerRadius)return true;
+ if(!doorOpen && Math.abs(x-.0)<1.125+playerRadius && Math.abs(z+.7)<.12+playerRadius)return true;
+ if(!innerRoomDoor.open && Math.abs(x)<.12+playerRadius && Math.abs(z+2.8)<.625+playerRadius)return true;
+ if(!garageDoor.open && Math.abs(x-1.95)<.625+playerRadius && Math.abs(z-2.55)<.12+playerRadius)return true;
+ return false;
+}
+function movePlayer(dx,dz){
+ const nx=player.position.x+dx,nz=player.position.z+dz;
+ if(!blockedAt(nx,player.position.z))player.position.x=nx;
+ if(!blockedAt(player.position.x,nz))player.position.z=nz;
+}
 document.querySelectorAll('[data-move]').forEach(b=>{const k=b.dataset.move;b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setMove(k,true)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,()=>setMove(k,false)))});
 addEventListener('keydown',e=>{const map={ArrowUp:'forward',w:'forward',ArrowDown:'back',s:'back',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'};if(map[e.key])setMove(map[e.key],true)});
 addEventListener('keyup',e=>{const map={ArrowUp:'forward',w:'forward',ArrowDown:'back',s:'back',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'};if(map[e.key])setMove(map[e.key],false)});
@@ -121,7 +142,7 @@ const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.
 let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{down=true;px=e.clientX;py=e.clientY});addEventListener('pointerup',()=>down=false);renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;yaw-=dx*.006;pitch=Math.max(.08,Math.min(.9,pitch+dy*.004))});
 const clock=new THREE.Clock();
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
- if(!buildMode&&held.size){let dx=0,dz=0;const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));if(held.has('forward')){dx+=forward.x;dz+=forward.z}if(held.has('back')){dx-=forward.x;dz-=forward.z}if(held.has('left')){dx-=right.x;dz-=right.z}if(held.has('right')){dx+=right.x;dz+=right.z}const len=Math.hypot(dx,dz)||1;player.position.x+=dx/len*3.2*dt;player.position.z+=dz/len*3.2*dt;player.position.x=Math.max(-5.4,Math.min(5.4,player.position.x));player.position.z=Math.max(-4.4,Math.min(4.4,player.position.z));player.rotation.y=Math.atan2(dx,dz);moving=true}else moving=false;
+ if(!buildMode&&held.size){let dx=0,dz=0;const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));if(held.has('forward')){dx+=forward.x;dz+=forward.z}if(held.has('back')){dx-=forward.x;dz-=forward.z}if(held.has('left')){dx-=right.x;dz-=right.z}if(held.has('right')){dx+=right.x;dz+=right.z}const len=Math.hypot(dx,dz)||1;movePlayer(dx/len*3.2*dt,dz/len*3.2*dt);player.rotation.y=Math.atan2(dx,dz);moving=true}else moving=false;
  const walkPhase=clock.elapsedTime*10;
  legs.forEach((leg,i)=>{leg.rotation.x=moving?Math.sin(walkPhase+(i*Math.PI))*.62:0});
  arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*.38:0});
