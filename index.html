@@ -165,7 +165,24 @@ document.getElementById('wall').onclick=()=>{const colors=[0xe4e1d9,0xd6e4e8,0xe
 document.getElementById('save').onclick=()=>{const data=items.map(i=>({type:i.type,x:i.g.position.x,z:i.g.position.z,rot:i.g.rotation.y}));localStorage.setItem('rhcraft-home',JSON.stringify({data,wallColor}));hint.textContent='Home saved on this device ✓'};
 document.getElementById('reset').onclick=()=>{items.forEach(i=>scene.remove(i.g));items=[];last=null;localStorage.removeItem('rhcraft-home');hint.textContent='Room reset'};
 try{const saved=JSON.parse(localStorage.getItem('rhcraft-home')||'null');if(saved){if(saved.data)saved.data.forEach(i=>furniture(i.type,i.x,i.z,i.rot));if(saved.wallColor){wallColor=saved.wallColor;walls.children.forEach(o=>{if(o.material===wallMat)o.material=mat(wallColor)})}}}catch(e){}
-const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(!buildMode)return;const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(floor);if(hit.length){const p=hit[0].point;if(Math.abs(p.x)<5&&p.z>-4.5&&p.z<4.5){const inside=selected==='garage'?p.x>2.1&&p.z>1.0:selected==='bath'?p.x>1.9&&p.z<-.9:selected==='kitchen'?p.x<-.9&&p.z<-.9:true;if(inside)furniture(selected,p.x,p.z,rotation);else hint.textContent='Is room nu usde area vich place karo'}}});
+function canPlaceFurniture(candidate){
+ const bounds=new THREE.Box3().setFromObject(candidate);
+ bounds.expandByScalar(.06);
+ // Reject placements that intersect any room wall or partition.
+ for(const wall of walls.children){
+  const wallBounds=new THREE.Box3().setFromObject(wall);
+  if(bounds.intersectsBox(wallBounds)) return false;
+ }
+ // Reject placements that overlap furniture already placed in the room.
+ for(const item of items){
+  if(item.g===candidate) continue;
+  const otherBounds=new THREE.Box3().setFromObject(item.g);
+  otherBounds.expandByScalar(.06);
+  if(bounds.intersectsBox(otherBounds)) return false;
+ }
+ return true;
+}
+const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(!buildMode)return;const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(floor);if(hit.length){const p=hit[0].point;if(Math.abs(p.x)<5&&p.z>-4.5&&p.z<4.5){const inside=selected==='garage'?p.x>2.1&&p.z>1.0:selected==='bath'?p.x>1.9&&p.z<-.9:selected==='kitchen'?p.x<-.9&&p.z<-.9:true;if(inside){const placed=furniture(selected,p.x,p.z,rotation);if(!canPlaceFurniture(placed)){scene.remove(placed);items=items.filter(i=>i.g!==placed);last=items.length?items[items.length-1].g:null;hint.textContent='Not placed: furniture nu wall ton door te hor furniture naal overlap ton bina rakho'}else hint.textContent=selected+' placed ✓'}else hint.textContent='Is room nu usde area vich place karo'}}});
 let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{down=true;px=e.clientX;py=e.clientY});addEventListener('pointerup',()=>down=false);renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;yaw-=dx*.006;pitch=Math.max(.08,Math.min(.9,pitch+dy*.004))});
 const clock=new THREE.Clock();
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
