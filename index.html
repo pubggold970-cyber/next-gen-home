@@ -23,7 +23,7 @@
 <div class="hud"><div class="pill">🏡 REALISTIC HOME CRAFT · SINGLE PLAYER</div><div class="pill" id="mode">Explore Mode</div></div>
 <button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <aside class="panel" id="panel"><h3>BUILD MENU</h3>
-<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button>
+<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button><button data-item="chair">🪑 Modern Dining Chair</button><button data-item="mirror">🪞 Full-Length Mirror</button>
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
 </aside>
 <div id="staminaHud">STAMINA <span id="staminaText">100%</span><div id="staminaTrack"><div id="staminaFill"></div></div></div>
@@ -256,6 +256,22 @@ function furniture(type,x=0,z=0,rot=0){
   add(.13,.045,.045,gold,0,.57,.39);
   add(.13,.045,.045,gold,0,.27,.39);
   for(const x of [-.27,.27])for(const z of [-.22,.22])add(.07,.16,.07,dark,x,.08,z);
+ }
+ if(type==='chair'){
+  const timber=mat(0x79543b,.42),upholstery=mat(0x536f83,.82),metal=mat(0x302f2d,.45);
+  add(.82,.14,.82,upholstery,0,.82,0);
+  add(.82,.9,.14,timber,0,1.3,-.34);
+  add(.68,.58,.09,upholstery,0,1.35,-.245);
+  for(const x of [-.32,.32])for(const z of [-.31,.31])add(.09,.78,.09,metal,x,.39,z);
+  add(.09,.55,.09,timber,-.34,1.05,-.34);
+  add(.09,.55,.09,timber,.34,1.05,-.34);
+ }
+ if(type==='mirror'){
+  const frame=mat(0x9b8058,.32),glass=new THREE.MeshStandardMaterial({color:0x9fc0c8,metalness:.82,roughness:.12});
+  add(1.12,2.35,.13,frame,0,1.2,0);
+  add(.91,2.13,.035,glass,0,1.2,.085);
+  add(1.18,.09,.16,wood,0,.08,0);
+  for(const x of [-.38,.38])add(.045,.12,.045,gold,x,.18,.13);
  }
  if(type==='clock'){
   const face=mat(0xf4f0e6,.25),ink=mat(0x252b31,.3);
