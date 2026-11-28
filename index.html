@@ -38,7 +38,7 @@ const mat=(c,r=.75)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
 const floorMat=mat(0x9b8068), wallMat=mat(0xe4e1d9), wood=mat(0x68452f), dark=mat(0x202b35), fabric=mat(0x477c91), gold=mat(0xc49a55), green=mat(0x39734d);
 function box(w,h,d,m,x,y,z,group=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;group.add(o);return o}
 const floor=box(12,.25,10,floorMat,0,-.13,0);const walls=new THREE.Group();scene.add(walls);
-box(12,3,.2,wallMat,0,1.35,-5,walls);box(.2,3,10,wallMat,-6,1.35,0,walls);box(.2,3,10,wallMat,6,1.35,0,walls);
+const paintableWalls=[box(12,3,.2,wallMat,0,1.35,-5,walls),box(.2,3,10,wallMat,-6,1.35,0,walls),box(.2,3,10,wallMat,6,1.35,0,walls)];
 box(12,.12,.22,wood,0,.12,-4.86,walls);box(.22,.12,10,wood,-5.86,.12,0,walls);
 box(.22,.12,10,wood,-5.86,.12,0,walls);
 // Interior partition creates a separate bedroom and a wide central doorway
@@ -162,10 +162,10 @@ const roomControls=document.createElement('div');roomControls.innerHTML='<hr><h3
 document.getElementById('innerDoorBtn').onclick=()=>innerRoomDoor.toggle();document.getElementById('garageDoorBtn').onclick=()=>garageDoor.toggle();
 addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e'&&!buildMode){if(Math.hypot(player.position.x,player.position.z+2.8)<3.2)innerRoomDoor.toggle();else if(Math.hypot(player.position.x-1.95,player.position.z-2.55)<3.2)garageDoor.toggle();else toggleDoor()}});
 document.getElementById('delete').onclick=()=>{if(last){scene.remove(last);items=items.filter(i=>i.g!==last);last=items.length?items[items.length-1].g:null}};
-document.getElementById('wall').onclick=()=>{const colors=[0xe4e1d9,0xd6e4e8,0xe7d7c6,0xc9d5c8,0xd8d0e6];wallColor=colors[(colors.indexOf(wallColor)+1)%colors.length];walls.children.forEach(o=>{if(o.material===wallMat)o.material=mat(wallColor)})};
+document.getElementById('wall').onclick=()=>{const colors=[0xe4e1d9,0xd6e4e8,0xe7d7c6,0xc9d5c8,0xd8d0e6];wallColor=colors[(colors.indexOf(wallColor)+1)%colors.length];paintableWalls.forEach(o=>o.material.color.setHex(wallColor));};
 document.getElementById('save').onclick=()=>{const data=items.map(i=>({type:i.type,x:i.g.position.x,z:i.g.position.z,rot:i.g.rotation.y}));localStorage.setItem('rhcraft-home',JSON.stringify({data,wallColor}));hint.textContent='Home saved on this device ✓'};
 document.getElementById('reset').onclick=()=>{items.forEach(i=>scene.remove(i.g));items=[];last=null;localStorage.removeItem('rhcraft-home');hint.textContent='Room reset'};
-try{const saved=JSON.parse(localStorage.getItem('rhcraft-home')||'null');if(saved){if(saved.data)saved.data.forEach(i=>furniture(i.type,i.x,i.z,i.rot));if(saved.wallColor){wallColor=saved.wallColor;walls.children.forEach(o=>{if(o.material===wallMat)o.material=mat(wallColor)})}}}catch(e){}
+try{const saved=JSON.parse(localStorage.getItem('rhcraft-home')||'null');if(saved){if(saved.data)saved.data.forEach(i=>furniture(i.type,i.x,i.z,i.rot));if(saved.wallColor){wallColor=saved.wallColor;paintableWalls.forEach(o=>o.material.color.setHex(wallColor))}}}catch(e){}
 function canPlaceFurniture(candidate){
  const bounds=new THREE.Box3().setFromObject(candidate);
  bounds.expandByScalar(.06);
