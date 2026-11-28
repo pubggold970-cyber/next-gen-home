@@ -23,7 +23,7 @@
 <div class="hud"><div class="pill">🏡 REALISTIC HOME CRAFT · SINGLE PLAYER</div><div class="pill" id="mode">Explore Mode</div></div>
 <button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <aside class="panel" id="panel"><h3>BUILD MENU</h3>
-<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button>
+<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button>
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
 </aside>
 <div id="staminaHud">STAMINA <span id="staminaText">100%</span><div id="staminaTrack"><div id="staminaFill"></div></div></div>
@@ -236,6 +236,26 @@ function furniture(type,x=0,z=0,rot=0){
     book.rotation.z=(n%2?-.025:.025);x+=w+.035;
    }
   }
+ }
+ if(type==='wardrobe'){
+  const body=mat(0x806047,.42),door=mat(0xb18a67,.38),inner=mat(0x49372d,.6);
+  add(1.85,2.45,.78,body,0,1.23,0);
+  add(1.68,2.27,.055,inner,0,1.23,.405);
+  add(.81,2.2,.045,door,-.42,1.23,.445);
+  add(.81,2.2,.045,door,.42,1.23,.445);
+  add(.025,2.12,.025,gold,0,1.23,.48);
+  for(const x of [-.12,.12])add(.045,.18,.045,gold,x,1.22,.51);
+  add(1.88,.09,.82,wood,0,2.48,0);
+ }
+ if(type==='bedside'){
+  const timber=mat(0x866044,.4),drawer=mat(0xb18b68,.4),darkHandle=mat(0x302b27,.45);
+  add(.78,.72,.66,timber,0,.38,0);
+  add(.82,.09,.7,wood,0,.78,0);
+  add(.68,.24,.035,drawer,0,.57,.35);
+  add(.68,.24,.035,drawer,0,.27,.35);
+  add(.13,.045,.045,gold,0,.57,.39);
+  add(.13,.045,.045,gold,0,.27,.39);
+  for(const x of [-.27,.27])for(const z of [-.22,.22])add(.07,.16,.07,dark,x,.08,z);
  }
  if(type==='clock'){
   const face=mat(0xf4f0e6,.25),ink=mat(0x252b31,.3);
