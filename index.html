@@ -23,7 +23,7 @@
 <div class="hud"><div class="pill">🏡 REALISTIC HOME CRAFT · SINGLE PLAYER</div><div class="pill" id="mode">Explore Mode</div></div>
 <button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <aside class="panel" id="panel"><h3>BUILD MENU</h3>
-<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button>
+<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button>
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
 </aside>
 <div id="staminaHud">STAMINA <span id="staminaText">100%</span><div id="staminaTrack"><div id="staminaFill"></div></div></div>
@@ -208,6 +208,25 @@ function furniture(type,x=0,z=0,rot=0){
    for(let k=-2;k<=2;k++){const pleat=add(.055,2.12,.105,fold,k*.115,1.38,.035,panel);pleat.position.z=.045}
    for(let k=0;k<4;k++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.055,.018,8,16),gold);ring.position.set(side*.72+(k-1.5)*.16,2.52,0);g.add(ring)}
   }
+ }
+ if(type==='clock'){
+  const face=mat(0xf4f0e6,.25),ink=mat(0x252b31,.3);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(.48,.065,12,40),gold);rim.position.set(0,2.05,0);g.add(rim);
+  const dial=new THREE.Mesh(new THREE.CylinderGeometry(.445,.445,.055,40),face);dial.rotation.x=Math.PI/2;dial.position.set(0,2.05,0);g.add(dial);
+  for(let n=0;n<12;n++){const a=n*Math.PI/6;const tick=add(.035,.11,.025,ink,Math.sin(a)*.34,2.05+Math.cos(a)*.34,.055);tick.rotation.z=-a}
+  const hand1=add(.025,.25,.025,ink,0,2.13,.09);hand1.rotation.z=-.35;
+  const hand2=add(.018,.34,.02,gold,0,2.19,.105);hand2.rotation.z=.85;
+  const pin=new THREE.Mesh(new THREE.SphereGeometry(.045,12,10),gold);pin.position.set(0,2.05,.12);g.add(pin);
+ }
+ if(type==='wallart'){
+  const frame=mat(0x65452f,.35),canvas=mat(0xd8d0bf,.8),blue=mat(0x426d7b,.65),sand=mat(0xc69b65,.65),leaf=mat(0x647b5b,.7);
+  add(1.65,1.18,.12,frame,0,1.85,0);
+  add(1.43,.96,.035,canvas,0,1.85,.08);
+  const sun=new THREE.Mesh(new THREE.CircleGeometry(.22,28),sand);sun.position.set(.38,2.1,.11);g.add(sun);
+  const shape1=new THREE.Shape();shape1.moveTo(-.68,1.43);shape1.lineTo(-.18,2.0);shape1.lineTo(.22,1.43);shape1.close();
+  const hill1=new THREE.Mesh(new THREE.ShapeGeometry(shape1),blue);hill1.position.z=.12;g.add(hill1);
+  const shape2=new THREE.Shape();shape2.moveTo(-.05,1.43);shape2.lineTo(.42,1.88);shape2.lineTo(.68,1.43);shape2.close();
+  const hill2=new THREE.Mesh(new THREE.ShapeGeometry(shape2),leaf);hill2.position.z=.13;g.add(hill2);
  }
  if(type==='blinds'){
   const slat=mat(0xe8e5dc,.48),rail=mat(0x8d969a,.4),cord=mat(0xc4b58e,.7);
