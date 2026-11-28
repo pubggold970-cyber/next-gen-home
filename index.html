@@ -69,8 +69,14 @@ box(.12,.18,.08,gold,2.02,1.25,.1,doorPivot);
 let doorOpen=false;
 function toggleDoor(){const near=Math.hypot(player.position.x+1.15,player.position.z+.7);if(near>2.8){hint.textContent='Door de kol jaan layi usde nere jao';return}doorOpen=!doorOpen;animatedDoors[0].target=doorOpen?-Math.PI/2:0;hint.textContent=doorOpen?'Bedroom door opened':'Bedroom door closed'}
 
-const windowMat=new THREE.MeshStandardMaterial({color:0x91cbe4,metalness:.2,roughness:.15});
-box(2.3,1.4,.08,windowMat,-2.7,2.0,-4.86,walls);box(.08,1.5,.1,wood,-2.7,2,-4.78,walls);box(2.4,.08,.1,wood,-2.7,2,-4.78,walls);
+const windowMat=new THREE.MeshStandardMaterial({color:0x91cbe4,metalness:.2,roughness:.15,transparent:true,opacity:.62});
+const windowFrameMat=mat(0x65452f);
+box(2.48,.1,.14,windowFrameMat,-2.7,2.76,-4.78,walls);box(2.48,.1,.14,windowFrameMat,-2.7,1.24,-4.78,walls);
+box(.1,1.52,.14,windowFrameMat,-3.94,2,-4.78,walls);box(.1,1.52,.14,windowFrameMat,-1.46,2,-4.78,walls);
+const windowPivot=new THREE.Group();windowPivot.position.set(-3.89,0,-4.86);scene.add(windowPivot);
+const windowPane=box(2.3,1.4,.055,windowMat,1.15,2,0,windowPivot);
+const windowAnimated={pivot:windowPivot,target:0};animatedDoors.push(windowAnimated);let windowOpen=false;
+function toggleWindow(){if(Math.hypot(player.position.x+2.7,player.position.z+4.86)>3.2){hint.textContent='Window de kol ja ke kholo';return}windowOpen=!windowOpen;windowAnimated.target=windowOpen?-Math.PI/2:0;hint.textContent=windowOpen?'Window opening: fresh air in':'Window closed'};
 // Dedicated room partitions for kitchen, bathroom and garage
 const roomWall=mat(0xd3d0c8);
 function partition(w,h,d,x,y,z){return box(w,h,d,roomWall,x,y,z,walls)}
@@ -184,11 +190,11 @@ function setMode(v){if(v&&crouching){crouching=false;crouchBtn.classList.remove(
 document.getElementById('build').onclick=()=>setMode(true);document.getElementById('explore').onclick=()=>setMode(false);
 panel.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{selected=b.dataset.item;panel.querySelectorAll('[data-item]').forEach(x=>x.classList.toggle('active',x===b));hint.textContent='Selected '+selected+' • Tap floor to place'});
 document.getElementById('rotate').onclick=()=>{rotation+=Math.PI/4;hint.textContent='Next furniture rotation: '+Math.round(rotation*180/Math.PI)+'°'};document.getElementById('door').onclick=()=>{const doors=[{d:Math.hypot(player.position.x+1.15,player.position.z+.7),fn:toggleDoor},{d:Math.hypot(player.position.x,player.position.z+2.8),fn:()=>innerRoomDoor.toggle()},{d:Math.hypot(player.position.x-1.95,player.position.z-2.55),fn:()=>garageDoor.toggle()}].sort((a,b)=>a.d-b.d);if(doors[0].d<=3.2)doors[0].fn();else hint.textContent='Darwaze de kol jao, phir Door button dabao'};
-const roomControls=document.createElement('div');roomControls.innerHTML='<hr><h3>ROOM DOORS</h3><button id="innerDoorBtn">Kitchen / Bathroom Door</button><button id="garageDoorBtn">Garage Door</button><hr><h3>ROOM LIGHT SWITCHES</h3><div id="roomLightSwitches"></div>';panel.appendChild(roomControls);
-document.getElementById('innerDoorBtn').onclick=()=>innerRoomDoor.toggle();document.getElementById('garageDoorBtn').onclick=()=>garageDoor.toggle();
+const roomControls=document.createElement('div');roomControls.innerHTML='<hr><h3>ROOM DOORS</h3><button id="innerDoorBtn">Kitchen / Bathroom Door</button><button id="garageDoorBtn">Garage Door</button><button id="windowBtn">Open / Close Window</button><hr><h3>ROOM LIGHT SWITCHES</h3><div id="roomLightSwitches"></div>';panel.appendChild(roomControls);
+document.getElementById('innerDoorBtn').onclick=()=>innerRoomDoor.toggle();document.getElementById('garageDoorBtn').onclick=()=>garageDoor.toggle();document.getElementById('windowBtn').onclick=()=>toggleWindow();
 const roomLightSwitches=document.getElementById('roomLightSwitches');
 roomLights.forEach((room,index)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=(room.enabled?'🟢 ':'⚫ ')+room.name+' LIGHT ON';btn.setAttribute('aria-label',room.name+' light switch');btn.onclick=()=>{room.enabled=!room.enabled;btn.textContent=(room.enabled?'🟢 ':'⚫ ')+room.name+' LIGHT '+(room.enabled?'ON':'OFF');btn.classList.toggle('active',room.enabled);refreshRoomLights();hint.textContent=room.name+' light '+(room.enabled?'ON':'OFF')};btn.classList.toggle('active',room.enabled);roomLightSwitches.appendChild(btn)});
-addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e'&&!buildMode){if(Math.hypot(player.position.x,player.position.z+2.8)<3.2)innerRoomDoor.toggle();else if(Math.hypot(player.position.x-1.95,player.position.z-2.55)<3.2)garageDoor.toggle();else toggleDoor()}});
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e'&&!buildMode){const nearby=[{d:Math.hypot(player.position.x+2.7,player.position.z+4.86),fn:toggleWindow},{d:Math.hypot(player.position.x,player.position.z+2.8),fn:()=>innerRoomDoor.toggle()},{d:Math.hypot(player.position.x-1.95,player.position.z-2.55),fn:()=>garageDoor.toggle()},{d:Math.hypot(player.position.x+1.15,player.position.z+.7),fn:toggleDoor}].sort((a,b)=>a.d-b.d);if(nearby[0].d<=3.2)nearby[0].fn();else hint.textContent='Door or window de kol jao, phir E dabao'}});
 document.getElementById('delete').onclick=()=>{if(last){scene.remove(last);items=items.filter(i=>i.g!==last);last=items.length?items[items.length-1].g:null}};
 document.getElementById('wall').onclick=()=>{const colors=[0xe4e1d9,0xd6e4e8,0xe7d7c6,0xc9d5c8,0xd8d0e6];wallColor=colors[(colors.indexOf(wallColor)+1)%colors.length];paintableWalls.forEach(o=>o.material.color.setHex(wallColor));};
 document.getElementById('save').onclick=()=>{const data=items.map(i=>({type:i.type,x:i.g.position.x,z:i.g.position.z,rot:i.g.rotation.y}));localStorage.setItem('rhcraft-home',JSON.stringify({data,wallColor}));hint.textContent='Home saved on this device ✓'};
