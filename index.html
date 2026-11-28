@@ -23,7 +23,7 @@
 <div class="hud"><div class="pill">🏡 REALISTIC HOME CRAFT · SINGLE PLAYER</div><div class="pill" id="mode">Explore Mode</div></div>
 <button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <aside class="panel" id="panel"><h3>BUILD MENU</h3>
-<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button><button data-item="chair">🪑 Modern Dining Chair</button><button data-item="mirror">🪞 Full-Length Mirror</button><button data-item="dining">🍽️ Modern Dining Table</button><button data-item="plantpot">🌿 Decorative Floor Planter</button>
+<button data-item="sofa">🛋️ Modern Sofa</button><button data-item="bed">🛏️ Luxury Bed</button><button data-item="table">🪑 Coffee Table</button><button data-item="plant">🪴 Indoor Plant</button><button data-item="lamp">💡 Floor Lamp</button><button data-item="tv">📺 Smart TV</button><button data-item="kitchen">🍳 Kitchen Counter</button><button data-item="bath">🛁 Bathroom Set</button><button data-item="garage">🚗 Garage</button><button data-item="fan">🌀 Ceiling Fan</button><button data-item="ceilinglight">✨ Ceiling Chandelier</button><button data-item="curtain">🪟 Modern Curtains</button><button data-item="blinds">▤ Window Blinds</button><button data-item="clock">🕒 Modern Wall Clock</button><button data-item="wallart">🖼️ Framed Wall Art</button><button data-item="rug">🧶 Modern Area Rug</button><button data-item="bookshelf">📚 Bookshelf</button><button data-item="wardrobe">🚪 Modern Wardrobe</button><button data-item="bedside">🛏️ Bedside Table</button><button data-item="chair">🪑 Modern Dining Chair</button><button data-item="mirror">🪞 Full-Length Mirror</button><button data-item="dining">🍽️ Modern Dining Table</button><button data-item="plantpot">🌿 Decorative Floor Planter</button><button data-item="fridge">🧊 Modern Refrigerator</button><button data-item="washer">🧺 Front-Load Washing Machine</button>
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
 </aside>
 <div id="staminaHud">STAMINA <span id="staminaText">100%</span><div id="staminaTrack"><div id="staminaFill"></div></div></div>
@@ -293,6 +293,28 @@ function furniture(type,x=0,z=0,rot=0){
    const stem=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,h*.72,8),vein);
    stem.position.set(Math.cos(a)*.13,.75+h*.28,Math.sin(a)*.13);stem.rotation.z=-Math.cos(a)*.3;stem.rotation.x=Math.sin(a)*.3;g.add(stem);
   }
+ }
+ if(type==='fridge'){
+  const body=mat(0xd9e0e5,.24),steel=mat(0x9ba8b0,.2),black=mat(0x252c32,.28),screen=mat(0x253d49,.18);
+  add(1.05,2.12,.9,body,0,1.06,0);
+  add(1.0,1.15,.035,steel,0,1.53,.47);
+  add(1.0,.82,.035,steel,0,.55,.47);
+  add(.025,1.98,.045,black,0,1.06,.495);
+  add(.045,.72,.055,black,.37,1.53,.52);
+  add(.045,.55,.055,black,.37,.57,.52);
+  add(.32,.19,.025,screen,-.22,1.78,.505);
+  add(1.12,.08,.94,dark,0,.04,0);
+ }
+ if(type==='washer'){
+  const body=mat(0xe1e5e7,.22),trim=mat(0x6b777e,.3),glass=mat(0x29414c,.16),darkRing=mat(0x252e34,.28);
+  add(1.05,1.18,.9,body,0,.59,0);
+  add(1.08,.09,.94,dark,0,.045,0);
+  add(.92,.12,.045,trim,0,1.02,.465);
+  add(.24,.07,.035,black,-.3,.88,.48);
+  add(.16,.16,.035,screen,.28,.88,.48);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.34,.055,12,36),darkRing);ring.position.set(0,.48,.48);g.add(ring);
+  const window=new THREE.Mesh(new THREE.CircleGeometry(.285,36),glass);window.position.set(0,.48,.485);g.add(window);
+  const drum=new THREE.Mesh(new THREE.TorusGeometry(.21,.018,8,32),steel);drum.position.set(0,.48,.49);g.add(drum);
  }
  if(type==='clock'){
   const face=mat(0xf4f0e6,.25),ink=mat(0x252b31,.3);
