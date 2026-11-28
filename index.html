@@ -136,7 +136,8 @@ function movePlayer(dx,dz){
  if(!blockedAt(player.position.x,nz))player.position.z=nz;
 }
 document.querySelectorAll('[data-move]').forEach(b=>{const k=b.dataset.move;b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setMove(k,true)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,()=>setMove(k,false)))});
-const jumpBtn=document.getElementById('jumpBtn');function jump(){if(!buildMode&&grounded){jumpVelocity=5.4;grounded=false;hint.textContent='Jump!'}}jumpBtn.addEventListener('click',jump);\nconst sprintBtn=document.getElementById('sprintBtn');sprintBtn.addEventListener('pointerdown',e=>{e.preventDefault();sprinting=true;sprintBtn.classList.add('active');sprintBtn.textContent='RUNNING'});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>sprintBtn.addEventListener(ev,()=>{sprinting=false;sprintBtn.classList.remove('active');sprintBtn.textContent='RUN'}));
+const jumpBtn=document.getElementById('jumpBtn');function jump(){if(!buildMode&&grounded){jumpVelocity=5.4;grounded=false;hint.textContent='Jump!'}}jumpBtn.addEventListener('click',jump);
+const sprintBtn=document.getElementById('sprintBtn');sprintBtn.addEventListener('pointerdown',e=>{e.preventDefault();sprinting=true;sprintBtn.classList.add('active');sprintBtn.textContent='RUNNING'});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>sprintBtn.addEventListener(ev,()=>{sprinting=false;sprintBtn.classList.remove('active');sprintBtn.textContent='RUN'}));
 addEventListener('keydown',e=>{const map={ArrowUp:'forward',w:'forward',ArrowDown:'back',s:'back',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'};if(map[e.key])setMove(map[e.key],true);if(e.key==='Shift')sprinting=true;if(e.code==='Space'){e.preventDefault();jump()}});
 addEventListener('keyup',e=>{const map={ArrowUp:'forward',w:'forward',ArrowDown:'back',s:'back',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'};if(map[e.key])setMove(map[e.key],false);if(e.key==='Shift')sprinting=false});
 
@@ -196,7 +197,8 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
  arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*.38:THREE.MathUtils.damp(arm.rotation.x,0,12,dt)});
  body.position.y=THREE.MathUtils.damp(body.position.y,.78+(moving?Math.abs(Math.sin(walkPhase))*.045:0),14,dt);
  head.position.y=THREE.MathUtils.damp(head.position.y,1.42+(moving?Math.abs(Math.sin(walkPhase))*.045:0),14,dt);
- if(!grounded){player.position.y+=jumpVelocity*dt;jumpVelocity-=14*dt;if(player.position.y<=0){player.position.y=0;jumpVelocity=0;grounded=true}}\n if(!buildMode)target.lerp(new THREE.Vector3(player.position.x,1.05+player.position.y,player.position.z),1-Math.exp(-7*dt));
+ if(!grounded){player.position.y+=jumpVelocity*dt;jumpVelocity-=14*dt;if(player.position.y<=0){player.position.y=0;jumpVelocity=0;grounded=true}}
+ if(!buildMode)target.lerp(new THREE.Vector3(player.position.x,1.05+player.position.y,player.position.z),1-Math.exp(-7*dt));
  camera.position.set(target.x+Math.sin(yaw)*Math.cos(pitch)*distance,target.y+Math.sin(pitch)*distance,target.z+Math.cos(yaw)*Math.cos(pitch)*distance);camera.lookAt(target);renderer.render(scene,camera)}animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 })();
