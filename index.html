@@ -8,6 +8,7 @@
 #game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:none}
 .hud{position:fixed;z-index:3;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.pill{background:#101820d9;border:1px solid #ffffff30;border-radius:14px;padding:9px 12px;backdrop-filter:blur(8px);font-weight:650}.panel{position:fixed;z-index:4;right:12px;top:64px;width:min(230px,48vw);background:#111d27eF;border:1px solid #ffffff30;border-radius:16px;padding:12px;max-height:68vh;overflow:auto}.panel h3{margin:0 0 8px;font-size:14px;color:#9fe3ff}.panel button,.bottom button{width:100%;border:0;border-radius:11px;padding:11px 9px;margin:4px 0;background:#24465b;color:white;font-weight:700;font-size:13px}.panel button:active,.bottom button:active{background:#32789c}.panel .active{background:#087e91}.bottom{position:fixed;z-index:4;bottom:12px;left:12px;right:12px;display:flex;gap:7px;align-items:end}.bottom button{flex:1;margin:0;background:#17384a;min-height:48px}.bottom button.primary{background:#087e91}.hint{position:fixed;z-index:3;bottom:74px;left:50%;transform:translateX(-50%);background:#111d27d9;padding:8px 12px;border-radius:12px;font-size:12px;white-space:nowrap;color:#d6e8f2}.hidden{display:none!important}
 #staminaHud{position:fixed;z-index:3;top:58px;left:50%;transform:translateX(-50%);width:150px;padding:6px 9px;border:1px solid #ffffff35;border-radius:12px;background:#101820d9;backdrop-filter:blur(8px);font-size:10px;font-weight:750;letter-spacing:.5px}#staminaTrack{height:6px;margin-top:4px;border-radius:8px;background:#ffffff30;overflow:hidden}#staminaFill{height:100%;width:100%;background:#75d6a0;border-radius:8px;transition:width .08s linear}#staminaHud.low #staminaFill{background:#f0b45e}#staminaHud.empty #staminaFill{background:#ed7777}
+ #nightBtn{position:fixed;z-index:5;left:14px;top:66px;border:1px solid #ffffff55;border-radius:12px;padding:10px 12px;background:#102b3bd9;color:#fff;font-size:12px;font-weight:800;letter-spacing:.3px;touch-action:manipulation}#nightBtn.active{background:#9a6a24}
 #zoomControls{position:fixed;z-index:5;right:14px;bottom:226px;display:flex;flex-direction:column;gap:7px}#zoomControls button{width:42px;height:42px;border:1px solid #ffffff66;border-radius:12px;background:#102b3bd9;color:#fff;font-size:23px;font-weight:800;touch-action:manipulation}#zoomControls button:active{background:#087e91}
 #crouchBtn{position:fixed;z-index:5;right:14px;bottom:174px;width:58px;height:42px;border:1px solid #ffffff55;border-radius:12px;background:#344b67e8;color:#fff;font-size:12px;font-weight:800;touch-action:manipulation}#crouchBtn.active{background:#087e91}
 .movePad{position:fixed;z-index:5;left:14px;bottom:82px;display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:44px 44px;gap:4px}
@@ -25,6 +26,7 @@
 <hr style="border-color:#ffffff20"><button id="wall">🎨 Change Wall Color</button><button id="save">💾 Save My Home</button><button id="reset">↻ Reset Room</button>
 </aside>
 <div id="staminaHud">STAMINA <span id="staminaText">100%</span><div id="staminaTrack"><div id="staminaFill"></div></div></div>
+<button id="nightBtn" type="button">🌙 NIGHT MODE</button>
 <div id="zoomControls"><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="zoomOut" type="button" aria-label="Zoom out">−</button></div>
 <button id="crouchBtn" type="button">CROUCH</button>
 <div class="movePad" id="movePad"><button id="jumpBtn" type="button">JUMP</button><button data-move="forward">▲</button><button data-move="left">◀</button><button data-move="back">▼</button><button data-move="right">▶</button><button id="sprintBtn" type="button">RUN</button></div>
@@ -38,9 +40,16 @@ if(!window.THREE){hint.textContent='3D engine could not load. Check your interne
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bb6c7);scene.fog=new THREE.Fog(0x9bb6c7,18,42);
 const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,100);camera.position.set(7,6,9);
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xeaf6ff,0x59616b,2));
+const hemi=new THREE.HemisphereLight(0xeaf6ff,0x59616b,2);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffedcf,2.2);sun.position.set(-5,10,7);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
 const mat=(c,r=.75)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+// Warm ceiling fixtures and room lights for day/night exploration.
+const roomLights=[];const fixtureMat=new THREE.MeshStandardMaterial({color:0xffe2a3,emissive:0xffb84d,emissiveIntensity:0,roughness:.35});
+function addRoomLight(x,z,power=1){const fixture=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12),fixtureMat);fixture.position.set(x,2.72,z);scene.add(fixture);const light=new THREE.PointLight(0xffd18a,0,8,1.8);light.position.set(x,2.58,z);scene.add(light);roomLights.push({light,fixture,power})}
+addRoomLight(-3,-2.4,1);addRoomLight(0,-3,.9);addRoomLight(0,1.1,1);addRoomLight(3.6,2.5,1.15);
+let nightMode=false;const nightBtn=document.getElementById('nightBtn');
+function setNightMode(on){nightMode=on;nightBtn.classList.toggle('active',on);nightBtn.textContent=on?'☀️ DAY MODE':'🌙 NIGHT MODE';hemi.intensity=on?.28:2;sun.intensity=on?.12:2.2;scene.background.setHex(on?0x101b32:0x9bb6c7);scene.fog.color.setHex(on?0x101b32:0x9bb6c7);roomLights.forEach(({light,power})=>{light.intensity=on?power*2.2:0});fixtureMat.emissiveIntensity=on?1.1:0;hint.textContent=on?'Night mode: indoor lights are ON':'Day mode: natural light is ON'}
+nightBtn.addEventListener('click',()=>setNightMode(!nightMode));
 const floorMat=mat(0x9b8068), wallMat=mat(0xe4e1d9), wood=mat(0x68452f), dark=mat(0x202b35), fabric=mat(0x477c91), gold=mat(0xc49a55), green=mat(0x39734d);
 function box(w,h,d,m,x,y,z,group=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;group.add(o);return o}
 const floor=box(12,.25,10,floorMat,0,-.13,0);const walls=new THREE.Group();scene.add(walls);
