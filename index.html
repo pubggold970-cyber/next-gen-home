@@ -193,16 +193,22 @@ function canPlaceFurniture(candidate){
 }
 const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(!buildMode)return;const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(floor);if(hit.length){const p=hit[0].point;if(Math.abs(p.x)<5&&p.z>-4.5&&p.z<4.5){const inside=selected==='garage'?p.x>2.1&&p.z>1.0:selected==='bath'?p.x>1.9&&p.z<-.9:selected==='kitchen'?p.x<-.9&&p.z<-.9:true;if(inside){const placed=furniture(selected,p.x,p.z,rotation);if(!canPlaceFurniture(placed)){scene.remove(placed);items=items.filter(i=>i.g!==placed);last=items.length?items[items.length-1].g:null;hint.textContent='Not placed: furniture nu wall ton door te hor furniture naal overlap ton bina rakho'}else hint.textContent=selected+' placed ✓'}else hint.textContent='Is room nu usde area vich place karo'}}});
 let down=false,px=0,py=0;renderer.domElement.addEventListener('pointerdown',e=>{if(e.button!==0)return;down=true;px=e.clientX;py=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointerup',()=>down=false);renderer.domElement.addEventListener('pointercancel',()=>down=false);renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;yawTarget-=dx*.005;pitchTarget=Math.max(.10,Math.min(.82,pitchTarget+dy*.0035))});
-const clock=new THREE.Clock();
+const clock=new THREE.Clock();let runBlend=0;
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
  yaw=THREE.MathUtils.damp(yaw,yawTarget,12,dt);pitch=THREE.MathUtils.damp(pitch,pitchTarget,12,dt);
  let inputX=0,inputZ=0;if(!buildMode&&held.size){const forwardX=-Math.sin(yaw),forwardZ=-Math.cos(yaw),rightX=Math.cos(yaw),rightZ=-Math.sin(yaw);if(held.has('forward')){inputX+=forwardX;inputZ+=forwardZ}if(held.has('back')){inputX-=forwardX;inputZ-=forwardZ}if(held.has('left')){inputX-=rightX;inputZ-=rightZ}if(held.has('right')){inputX+=rightX;inputZ+=rightZ}}
  const inputLen=Math.hypot(inputX,inputZ);if(inputLen>0){const moveSpeed=sprinting?5.2:3.45;inputX=inputX/inputLen*moveSpeed;inputZ=inputZ/inputLen*moveSpeed;}const response=inputLen>0?13:9;playerVelocity.x=THREE.MathUtils.damp(playerVelocity.x,inputX,response,dt);playerVelocity.y=THREE.MathUtils.damp(playerVelocity.y,inputZ,response,dt);if(Math.abs(playerVelocity.x)<.015)playerVelocity.x=0;if(Math.abs(playerVelocity.y)<.015)playerVelocity.y=0;movePlayer(playerVelocity.x*dt,playerVelocity.y*dt);moving=Math.hypot(playerVelocity.x,playerVelocity.y)>.12;if(moving)player.rotation.y=THREE.MathUtils.damp(player.rotation.y,Math.atan2(playerVelocity.x,playerVelocity.y),14,dt);
- const walkPhase=clock.elapsedTime*10;
- legs.forEach((leg,i)=>{leg.rotation.x=moving?Math.sin(walkPhase+(i*Math.PI))*.62:THREE.MathUtils.damp(leg.rotation.x,0,12,dt)});
- arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*.38:THREE.MathUtils.damp(arm.rotation.x,0,12,dt)});
- body.position.y=THREE.MathUtils.damp(body.position.y,.78+(moving?Math.abs(Math.sin(walkPhase))*.045:0),14,dt);
- head.position.y=THREE.MathUtils.damp(head.position.y,1.42+(moving?Math.abs(Math.sin(walkPhase))*.045:0),14,dt);
+ const running=moving&&sprinting,runTarget=running?1:0;
+ runBlend=THREE.MathUtils.damp(runBlend,runTarget,8,dt);
+ const cadence=10+runBlend*3.8,walkPhase=clock.elapsedTime*cadence;
+ const legSwing=.62+runBlend*.27,armSwing=.38+runBlend*.3;
+ legs.forEach((leg,i)=>{const swing=moving?Math.sin(walkPhase+(i*Math.PI))*legSwing:0;leg.rotation.x=THREE.MathUtils.damp(leg.rotation.x,swing, moving?18:12,dt)});
+ arms.forEach((arm,i)=>{const swing=moving?Math.sin(walkPhase+(i===0?0:Math.PI))*armSwing:0;arm.rotation.x=THREE.MathUtils.damp(arm.rotation.x,swing, moving?18:12,dt)});
+ // Gentle forward lean and stronger vertical bounce while sprinting.
+ player.rotation.x=THREE.MathUtils.damp(player.rotation.x,running?.13:0,8,dt);
+ const strideBounce=moving?Math.abs(Math.sin(walkPhase))*(.035+runBlend*.035):Math.sin(clock.elapsedTime*2)*.008;
+ body.position.y=THREE.MathUtils.damp(body.position.y,.78+strideBounce,14,dt);
+ head.position.y=THREE.MathUtils.damp(head.position.y,1.42+strideBounce*.65,14,dt);
  if(!grounded){
   player.position.y+=jumpVelocity*dt;jumpVelocity-=14*dt;
   if(player.position.y<=0){player.position.y=0;jumpVelocity=0;grounded=true;landingEffectTime=.34;landingRing.visible=true;landingRing.position.set(player.position.x,.025,player.position.z);landingRing.scale.setScalar(.65)}
